@@ -1,0 +1,21 @@
+.boxdiv {
+  width: 60%;
+  background: #fff;
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);
+  margin: 10px auto 10px auto !important;
+  /* important is for center aligned as left and right are auto */
+  min-height: 105vh;
+}
+
+.ql-toolbar.ql-snow {
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  top: 0; /* remain there at top 0 value as absolute position */
+  z-index: 1;
+  background: #f3f3f3;
+  border: none !important;
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);
+
+  /* position sticky takes top, left, right and bottom. Without them it wont work */
+}
