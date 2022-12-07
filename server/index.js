@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 
 const PORT = 9000;
+console.log("hey");
 // create a new server
 const io = new Server(PORT, {
   // cors is a configuration object that allows you to specify which origins are allowed to connect to your Socket.IO server.
@@ -14,4 +15,9 @@ const io = new Server(PORT, {
 // create a connection event, first argument is the event name, second argument is a callback function
 io.on("connection", (socket) => {
   console.log("connected");
+  socket.on("send-changes", (delta) => {
+    // broadcast the changes to all the clients
+    socket.broadcast.emit("receive-changes", delta);
+    console.log(delta.ops);
+  });
 });
