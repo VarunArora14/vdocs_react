@@ -15,9 +15,15 @@ const io = new Server(PORT, {
 // create a connection event, first argument is the event name, second argument is a callback function
 io.on("connection", (socket) => {
   console.log("connected");
-  socket.on("send-changes", (delta) => {
-    // broadcast the changes to all the clients
-    socket.broadcast.emit("receive-changes", delta);
-    console.log(delta.ops);
+
+  socket.on("get-document", (documentId) => {
+    const data = "";
+    socket.join(documentId); // join the room
+    socket.emit("load-document", data); // send the document to the client
+
+    socket.on("send-changes", (delta) => {
+      socket.broadcast.to(documentId).emit("receive-changes", delta); // broadcast to same document and not all the clients
+      console.log(delta.ops);
+    });
   });
 });

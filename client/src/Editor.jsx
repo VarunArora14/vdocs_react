@@ -5,6 +5,7 @@ import "quill/dist/quill.snow.css";
 import { styled } from "@mui/system";
 
 import { io } from "socket.io-client"; // to connect to the server from client
+import { useParams } from "react-router-dom"; // get the slug from the url(id)
 
 const MyDiv = styled("div")({
   backgroundColor: "#F5F5F5",
@@ -34,6 +35,8 @@ const toolbarOptions = [
 const Editor = () => {
   const [socket, setSocket] = useState();
   const [quill, setQuill] = useState();
+  console.log(useParams());
+  const { id } = useParams(); // get the slug from the url, 'id' is the name of the slug mentioned in App.js
 
   // calls first when the component is mounted
   useEffect(() => {
@@ -42,9 +45,12 @@ const Editor = () => {
       modules: { toolbar: toolbarOptions },
       theme: "snow",
     });
+    quillServer.disable(); // disable the editor till document not loaded from DB
+    quillServer.setText("Loading the document..."); // set the text to loading till document not loaded from DB
     setQuill(quillServer); // assign the quill object to the state
   }, []);
 
+  // initialise the socket object when the component is mounted
   useEffect(() => {
     const ioServer = io("http://localhost:9000"); // same port as the server
     setSocket(ioServer); // assign the socket object to the state
@@ -55,7 +61,7 @@ const Editor = () => {
     };
   }, []);
 
-  // by now quill has been initialized and socket has been connected
+  // by now quill has been initialized and socket has been connected, so we can send changes to the server
   useEffect(() => {
     // check if both quill and socket are initialized
     if (socket === null || quill === null) return;
@@ -70,8 +76,8 @@ const Editor = () => {
     quill && quill.on("text-change", handleChanges);
 
     return () => {
-      // if the component is unmounted, then remove the event listener and revert the changes
-      quill && quill.off("text-change", handleChanges); // https://youtu.be/yg2p6wp-4_g?t=1069
+      // if the component is unmounted, then remove the event listener and send the changes to the server
+      quill && quill.off("text-change", handleChanges); // remove the event listener
     };
   }, [quill, socket]);
 
@@ -85,13 +91,28 @@ const Editor = () => {
     if (socket === null || quill === null) return;
 
     const handleChanges = (delta) => {
-      // message sent by the server through other clients have to be applied to the editor
-      quill && quill.updateContents(delta);
+      quill && quill.updateContents(delta); // message sent by the server through other clients have to be applied to the editor
     };
 
-    // catch the event of recieving changes from other clients
-    socket && socket.on("receive-changes", handleChanges);
+    socket && socket.on("receive-changes", handleChanges); // catch the event of recieving changes from other clients
+
+    return () => {
+      socket && socket.off("receive-changes", handleChanges); // remove the event listener
+    };
   }, [quill, socket]);
+
+  useEffect(() => {
+    if (quill === null || socket === null) return;
+
+    socket &&
+      socket.once("load-document", (document) => {
+        quill && quill.setContents(document);
+        quill && quill.enable(); // enable the editor after document is loaded from DB
+      });
+
+    // first fetch the document from the server
+    socket && socket.emit("get-document", id);
+  }, [quill, socket, id]);
 
   return (
     <MyDiv>
