@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import connectDB from "./database/db.js";
-import { getDocument } from "./controller/doc-controller.js";
+import { getDocument, updateDocument } from "./controller/doc-controller.js";
 
 const PORT = 9000;
 
@@ -21,15 +21,19 @@ const io = new Server(PORT, {
 io.on("connection", (socket) => {
   console.log("connected");
 
-  socket.on("get-document", (documentId) => {
+  socket.on("get-document", async (documentId) => {
     const data = "";
-    const document = getDocument(documentId); // get the document from the database
+    const document = await getDocument(documentId); // get the document from the database
     socket.join(documentId); // join the room
     socket.emit("load-document", document.data); // send the document to the client
 
     socket.on("send-changes", (delta) => {
       socket.broadcast.to(documentId).emit("receive-changes", delta); // broadcast to same document and not all the clients
       console.log(delta.ops);
+    });
+
+    socket.on("save-document", async (data) => {
+      await updateDocument(documentId, data); // save the document to the database
     });
   });
 });

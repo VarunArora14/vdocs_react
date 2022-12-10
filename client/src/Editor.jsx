@@ -114,6 +114,18 @@ const Editor = () => {
     socket && socket.emit("get-document", id);
   }, [quill, socket, id]);
 
+  useEffect(() => {
+    if (socket === null || quill === null) return;
+
+    const interval = setInterval(() => {
+      socket && socket.emit("save-document", quill.getContents());
+    }, 2000); // 2000ms = 2s
+
+    return () => {
+      clearInterval(interval); // good practice to clear the interval
+    };
+  }, [socket, quill]);
+
   return (
     <MyDiv>
       <Box className="boxdiv" id="editor">

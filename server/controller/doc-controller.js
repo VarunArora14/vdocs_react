@@ -11,3 +11,10 @@ export const getDocument = async (id) => {
   // otherwise create a new document
   return await Document.create({ _id: id, data: "" }); // create document with id and empty data, id from url
 };
+
+export const updateDocument = async (id, data) => {
+  if (id === null) return;
+
+  const document = await Document.findByIdAndUpdate(id, { data });
+  return document; // return the updated document
+};
