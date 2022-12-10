@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import connectDB from "./database/db.js";
 import { getDocument, updateDocument } from "./controller/doc-controller.js";
+import dotenv from "dotenv";
+dotenv.config(); // load the environment variables from the .env file
 
 const PORT = 9000;
 
